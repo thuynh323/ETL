@@ -5,7 +5,7 @@
 This project covers an ETL process based on my ads history from Brave rewards.
 
 Since I could not find where Brave stores my personal ads history, I decided to build a pipeline to scrape these data from my own browser, then store them in an .sqlite database.
-This process will be scheduled to run daily using Airflow.
+This process will be scheduled to run daily using Airflow with some modification.
 
 Motivated by: [Karolina Sowinska's ETL process built for Spotify data](https://www.youtube.com/watch?v=dvviIUKwH7o)
 - My ads history from Brave rewards
