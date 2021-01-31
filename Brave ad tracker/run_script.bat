@@ -10,9 +10,10 @@ echo Incorrect input & goto Ask
 :yes
 echo You should get some sleep...
 pause
+exit
 
 :no
-echo Start scraping...
+echo Start the program...
 cd C:\Users\Thanh Huynh\Documents\Projects\brave-ads\venv
 "C:\Python38\python.exe" "C:\Users\Thanh Huynh\Documents\Projects\brave-ads\venv\main.py"
 pause
