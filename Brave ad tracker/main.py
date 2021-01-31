@@ -64,7 +64,7 @@ if __name__ == '__main__':
             print('No ads displayed in the last 7 days. Finishing execution')
         finally:
             driver.quit()
-    # Brave is running. Determinate the program
+    # Brave is running. Terminate the program
     except InvalidArgumentException:
         print('Please close current Brave browser to proceed')
         sys.exit()
@@ -114,6 +114,6 @@ if __name__ == '__main__':
             conn.close()
             print('Loaded data sucessfully')
 
-    # Determinate if the dataframe is empty
+    # Terminate if the dataframe is empty
     else:
         sys.exit()
