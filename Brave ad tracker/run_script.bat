@@ -1,6 +1,6 @@
 @echo off
 :Ask
-echo Sorry...Have I run today? Please check the database if you don't remember. (y/n)
+echo Have you collected Brave ads data today? Please check the database if you don't remember. (y/n)
 set INPUT=
 set /P INPUT=Type input: %=%
 If /I "%INPUT%"=="y" goto yes 
@@ -8,7 +8,7 @@ If /I "%INPUT%"=="n" goto no
 echo Incorrect input & goto Ask
 
 :yes
-echo You should get some sleep...
+echo Well done!
 pause
 exit
 
