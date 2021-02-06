@@ -2,6 +2,7 @@ import sys
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, InvalidArgumentException
 from selenium.webdriver.chrome.options import Options
+import time
 import sqlalchemy
 import sqlite3
 import pandas as pd
@@ -26,6 +27,7 @@ def extract_data(user_data: str, brave_path: str, driver_path: str) -> dict:
     try:
         driver = webdriver.Chrome(executable_path= driver_path, options= option)
         driver.get('brave://rewards/')
+        time.sleep(5)
 
         # Check if there were ads displayed
         # Scrape all ads
