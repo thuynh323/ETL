@@ -1,7 +1,7 @@
 # Respond to tracking request emails
 This script automatically drafts email responses to tracking requests and sets email notifications for the senders.
 ## Overview
-My team has received a large number of tracking request emails everyday, and this number can increase rapidly during peak seasons. This project was created to help save time of manually responding to each email.
+My team receive a large number of tracking request emails everyday, and this number can increase rapidly during peak seasons. This project was created to help save time of manually responding to each email.
 
 Response exmaple:
 <details>
