@@ -45,7 +45,7 @@ Response exmaple:
 </details>
 
 
-These are requests for [UPS Mail Innovations Team](https://www.ups.com/us/en/services/shipping/mail-innovations.page) packages. Due to the task requirements, we need to provide the latest tracking events from UPS data and set up USPS email notifications for the customers.
+These are requests for [UPS Mail Innovations](https://www.ups.com/us/en/services/shipping/mail-innovations.page) packages. Due to the task requirements, we need to provide the latest tracking events from UPS data and set up USPS email notifications for the customers.
 ## Configuration
 The program is driven by a configuration file (config.ini). All sections are required, and one might need to change values in some sections to have the script run properly.
 1. **UPS API access key**: See instructions [here](https://www.ups.com/upsdeveloperkit?loc=en_US)
