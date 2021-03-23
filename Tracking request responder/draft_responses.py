@@ -21,7 +21,7 @@ def track_pic(url: str,
     response = r.json().get('trackResponse').get('shipment')[0].get('package')
     
     tracking_events = {}
-    if response == None:
+    if response == '':
         pass
     else:
         tracking_summary = response[0].get('activity')[0]
@@ -37,9 +37,9 @@ def track_pic(url: str,
         
         tracking_events['tracking_number'] = tracking_number
         tracking_events['last_event'] = last_status
-        if last_city != None:
+        if last_city != '':
             tracking_events['last_location'] = last_city + ', ' + last_state + ' ' + last_zip
-        if last_date != None:
+        if last_date != '':
             tracking_events['last_date_time'] = str(last_date) + ' ' + str(last_time)
     return tracking_events
 
@@ -70,21 +70,23 @@ def set_alert(field_url: str,
     
     get_mp_field = requests.get(request_field_url, verify=ca_path)
     result = get_mp_field.content.decode('utf-8')
-    
-    mp_suffix = re.search(r'[0-9]+(?=</MPSUFFIX>)', result)[0]
-    mp_date = re.search(r'(?<=<MPDATE>)\S+\s\S+(?=</MPDATE>)', result)[0]
-    
-    # Access to Tracking and Confirm by Email API and set email alert
-    request_email_url = get_url(base_url=email_url,
-                                xml=request_email_xml
-                                .format(tracking_number, mp_suffix, mp_date, email))
-    response = requests.get(request_email_url, verify=ca_path)
+    try:
+        mp_suffix = re.search(r'[0-9]+(?=</MPSUFFIX>)', result)[0]
+        mp_date = re.search(r'(?<=<MPDATE>)\S+\s\S+(?=</MPDATE>)', result)[0]
+        # Access to Tracking and Confirm by Email API and set email alert
+        request_email_url = get_url(base_url=email_url,
+                                    xml=request_email_xml
+                                    .format(tracking_number, mp_suffix, mp_date, email))
+        response = requests.get(request_email_url, verify=ca_path)
+        return response.status_code
+    except TypeError:
+        return 'Unregistered tracking number'
     
     
 def main():
     
     config = configparser.ConfigParser(interpolation=configparser.BasicInterpolation())
-    config.read('config.txt')
+    config.read('config.ini')
 
     ca_path = config['DEFAULT']['ca_path']
     ups_headers = {'AccessLicenseNumber': config['UPS']['ups_key']}
@@ -99,6 +101,11 @@ def main():
     main_folder = config['EMAIL']['main_folder']
     sub_folder = config['EMAIL']['sub_folder']
 
+    email_content_invalid_tracking = config['EMAIL']['invalid_tracking']
+    email_content_registered_tracking = config['EMAIL']['registered_tracking']
+    email_content_unregistered_tracking = config['EMAIL']['unregistered_tracking']
+    email_content_only_data_received = config['EMAIL']['only_data_received']
+
     try:
         outlook = win32.gencache.EnsureDispatch('Outlook.Application').GetNamespace('MAPI')
     except AttributeError:
@@ -112,60 +119,84 @@ def main():
     read_folder = folder.Folders[sub_folder]
     mail_items = read_folder.Items
     
-    for mail in mail_items:
-        
-        if mail.Class == 43:
-            mail_content = mail.Body
-            find_tracking_number = re.findall(r'92\d{24}', mail_content)
-            reply_all = mail.ReplyAll()
-            
-            if find_tracking_number != None and len(find_tracking_number) == 1:
-                tracking_number = find_tracking_number[0]
-                tracking_result = track_pic(url=ups_url,
-                                            headers=ups_headers,
-                                            ca_path=ca_path,
-                                            tracking_number=tracking_number)
+    if len(mail_items) == 0:
+        print('No mail items found') 
+    else:  
+        for mail in mail_items:
+            if mail.Class == 43:
+                mail_content = mail.Body
+                find_tracking_number = re.findall(r'92\d{24}', mail_content)
                 
-                if tracking_result == {}:
-                    reply_all.HTMLBody = config['EMAIL']['invalid_tracking']
-                elif len(tracking_result) == 4:
-                    reply_all.HTMLBody = (config['EMAIL']['registered_tracking']
-                                          .format(tracking_result['tracking_number'],
-                                                  tracking_result['last_event'],
-                                                  tracking_result['last_location'],
-                                                  tracking_result['last_date_time'])
-                                           + reply_all.HTMLBody
-                    )
-                    if mail.SenderEmailType == 'EX':
-                        sender = mail.Sender.GetExchangeUser().PrimarySmtpAddress
-                    else:
-                        sender = mail.SenderEmailAddress
-                        if '@ups.com' in sender.lower():
-                            continue
-                        else:
-                            set_alert(field_url=field_url,
-                                      email_url=email_url,
-                                      ca_path=ca_path,
-                                      request_field_xml=field_xml,
-                                      request_email_xml=email_xml,
-                                      tracking_number=tracking_number,
-                                      email=sender)
+                if find_tracking_number != '' and len(find_tracking_number) == 1:
+                    tracking_number = find_tracking_number[0]
+                    tracking_result = track_pic(url=ups_url,
+                                                headers=ups_headers,
+                                                ca_path=ca_path,
+                                                tracking_number=tracking_number)
+                    reply_all = mail.ReplyAll()
                     
-                elif len(tracking_result) == 3:
-                    reply_all.HTMLBody = (config['EMAIL']['unregistered_tracking']
-                                          .format(tracking_result['tracking_number'],
-                                                  tracking_result['last_event'],
-                                                  tracking_result['last_date_time'])
-                                           + reply_all.HTMLBody
-                    )
+                    if tracking_result == {}:
+                        reply_all.HTMLBody = email_content_invalid_tracking
 
-                reply_all.Save()
-        
+                    elif len(tracking_result) == 3:
+                        reply_all.HTMLBody = (email_content_only_data_received
+                                             .format(tracking_result['tracking_number'],
+                                                     tracking_result['last_event'],
+                                                     tracking_result['last_date_time'])
+                                             + reply_all.HTMLBody
+                        )
+
+                    elif len(tracking_result) == 4:
+                        if mail.SenderEmailType == 'EX':
+                            sender = mail.Sender.GetExchangeUser().PrimarySmtpAddress
+                        else:
+                            sender = mail.SenderEmailAddress
+                            
+                        if '@ups.com' in sender.lower():
+                            print(f'{tracking_number}: Please set notifications for customer email')
+                            reply_all.HTMLBody = (email_content_registered_tracking
+                                                    .format(tracking_result['tracking_number'],
+                                                            tracking_result['last_event'],
+                                                            tracking_result['last_location'],
+                                                            tracking_result['last_date_time'])
+                                                    + reply_all.HTMLBody
+                            )
+                        else:
+                            status = set_alert(field_url=field_url,
+                                                email_url=email_url,
+                                                ca_path=ca_path,
+                                                request_field_xml=field_xml,
+                                                request_email_xml=email_xml,
+                                                tracking_number=tracking_number,
+                                                email=sender)
+                            if status == 200:
+                                print(f'{tracking_number}: Successfully set notifications for {sender}')
+                                reply_all.HTMLBody = (email_content_registered_tracking
+                                                        .format(tracking_result['tracking_number'],
+                                                                tracking_result['last_event'],
+                                                                tracking_result['last_location'],
+                                                                tracking_result['last_date_time'])
+                                                        + reply_all.HTMLBody
+                                )
+                    
+                            elif status == 'Unregistered tracking number':
+                                print(f'{tracking_number}: Unregistered in the USPS system')
+                                reply_all.HTMLBody = (email_content_unregistered_tracking
+                                                        .format(tracking_result['tracking_number'],
+                                                                tracking_result['last_event'],
+                                                                tracking_result['last_location'],
+                                                                tracking_result['last_date_time'])
+                                                        + reply_all.HTMLBody
+                                )
+                                
+                            else:
+                                print(f'{tracking_number}: Unable to set notifications for {sender}')
+                    
+                    reply_all.Save()
+                else:
+                    continue
             else:
                 continue
-        else:
-            continue
-            
-
+     
 if __name__ == '__main__':
     main()
