@@ -4,6 +4,7 @@ import configparser
 import socket
 import json
 import re
+import sys
 from urllib import parse
 from os import environ
 from shutil import rmtree
@@ -84,7 +85,7 @@ def set_alert(field_url: str,
     
     
 def main():
-    
+    sys.stdout = open('log.txt', 'w')
     config = configparser.ConfigParser(interpolation=configparser.BasicInterpolation())
     config.read('config.ini')
 
@@ -188,7 +189,7 @@ def main():
                                                                 tracking_result['last_date_time'])
                                                         + reply_all.HTMLBody
                                 )
-                                
+
                             else:
                                 print(f'{tracking_number}: Unable to set notifications for {sender}')
                     
@@ -197,6 +198,6 @@ def main():
                     continue
             else:
                 continue
-     
+    sys.stdout.close() 
 if __name__ == '__main__':
     main()
