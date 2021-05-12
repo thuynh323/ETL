@@ -22,7 +22,7 @@ def track_pic(url: str,
     response = r.json().get('trackResponse').get('shipment')[0].get('package')
     
     tracking_events = {}
-    if response == '':
+    if response is None:
         pass
     else:
         tracking_summary = response[0].get('activity')[0]
@@ -128,7 +128,7 @@ def main():
                 mail_content = mail.Body
                 find_tracking_number = re.findall(r'92\d{24}', mail_content)
                 
-                if find_tracking_number != '' and len(find_tracking_number) == 1:
+                if not (find_tracking_number is None):
                     tracking_number = find_tracking_number[0]
                     tracking_result = track_pic(url=ups_url,
                                                 headers=ups_headers,
