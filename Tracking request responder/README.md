@@ -1,7 +1,7 @@
 # Respond to tracking request emails
 This script automatically drafts email responses to tracking requests and sets email notifications for the senders.
 ## Overview
-My team receive a large number of tracking request emails everyday, and this number can increase rapidly during peak seasons. This project was created to help save time of manually responding to each email.
+We receive a large number of tracking request emails everyday, and this number can increase rapidly during peak seasons. This project was created to help save time of manually responding to each email.
 
 Response exmaple:
 <details>
@@ -44,11 +44,30 @@ Response exmaple:
 >Unfortunately, we are unable to locate this package in our system.
 </details>
 
+<details>
+  <summary>Only data received</summary>
 
-These are requests for [UPS Mail Innovations](https://www.ups.com/us/en/services/shipping/mail-innovations.page) packages. Due to the task requirements, we need to provide the latest tracking events from UPS data and set up USPS email notifications for the customers.
+>Hello,
+>
+>Your request has been received and is being reviewed by our support department. We received this package shipment information only. There is no indication that we received the physical package for processing.
+>
+>Tracking number:<br>
+>&emsp;&emsp;&emsp;&emsp;92612902410577543489249076<br>
+>Current package status:<br>
+>&emsp;&emsp;&emsp;&emsp;Order information received<br>
+>Date, time :<br>
+>&emsp;&emsp;&emsp;&emsp;2021-02-08 04:01:00
+</details>
+
+These are requests for [UPS Mail Innovations](https://www.ups.com/us/en/supplychain/solutions/mail-innovations.page) packages. Due to the task requirements, we need to provide the latest tracking events from UPS data and set up USPS email notifications for the customers.
 ## Configuration
 The program is driven by a configuration file (config.ini). All sections are required, and one might need to change values in some sections to have the script run properly.
 1. **UPS API access key**: See instructions [here](https://www.ups.com/upsdeveloperkit?loc=en_US)
 2. **USPS user id**: See instructions [here](https://www.usps.com/business/web-tools-apis/)
 3. **Access to USPS Track and Confirm by Email API**: A Mailer ID is required to get this access. See more [here](https://www.usps.com/business/web-tools-apis/track-and-confirm-api_files/track-and-confirm-api.htm#_Toc41911520)
 4. **Certificate Authority .pem file**: May be required to avoid SSL errors while running the script from a coporate computer
+
+In order to convert this scipt to .exe file, I used pyinstaller
+```python
+pyinstaller --onefile -w draft_responses.py
+```
